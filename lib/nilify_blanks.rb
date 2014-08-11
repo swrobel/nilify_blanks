@@ -84,10 +84,23 @@ module NilifyBlanks
     def nilify_blanks
       (self.nilify_blanks_columns || []).each do |column|
         value = read_attribute(column)
-        next unless value.is_a?(String)
-        next unless value.respond_to?(:blank?)
-
-        write_attribute(column, nil) if value.blank?
+        next unless value.is_a?(String) || value.is_a?(Array)
+        if value.is_a?(String)
+          next unless value.respond_to?(:blank?)
+          write_attribute(column, nil) if value.blank?
+        elsif value.is_a?(Array)
+          value.reject! { |array_value|
+            next unless array_value.respond_to?(:blank?)
+            array_value.blank?
+          }
+          if value.empty?
+            write_attribute(column, nil) if value.blank?
+          else
+            write_attribute(column, value) if value.blank?
+          end
+        else
+          next
+        end
       end
     end
   end
