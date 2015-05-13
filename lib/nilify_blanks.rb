@@ -84,7 +84,6 @@ module NilifyBlanks
     def nilify_blanks
       (self.nilify_blanks_columns || []).each do |column|
         value = read_attribute(column)
-        next unless value.is_a?(String) || value.is_a?(Array)
         if value.is_a?(String)
           next unless value.respond_to?(:blank?)
           write_attribute(column, nil) if value.blank?
@@ -98,8 +97,6 @@ module NilifyBlanks
           else
             write_attribute(column, value) if value.blank?
           end
-        else
-          next
         end
       end
     end
