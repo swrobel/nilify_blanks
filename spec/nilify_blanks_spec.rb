@@ -13,12 +13,12 @@ describe NilifyBlanks do
         nilify_blanks
       end
 
-      @post = Post.new(:first_name => '', :last_name => '', :title => '', :summary => '', :body => '', :slug => '', :views => 0, :blog_id => '', :custom_data => [''])
+      @post = Post.new(:first_name => '', :last_name => '', :title => '', :summary => '', :body => '', :slug => '', :views => 0, :blog_id => '', :tags => [''])
       @post.save
     end
 
     it "should recognize all non-null string, text, citext columns" do
-      Post.nilify_blanks_columns.should == ['first_name', 'title', 'summary', 'body', 'slug', 'blog_id', 'custom_data']
+      Post.nilify_blanks_columns.should == ['first_name', 'title', 'summary', 'body', 'slug', 'blog_id', 'tags']
     end
 
     it "should convert all blanks to nils" do
@@ -28,7 +28,7 @@ describe NilifyBlanks do
       @post.body.should be_nil
       @post.slug.should be_nil
       @post.blog_id.should be_nil
-      @post.custom_data.should be_nil if array_supported?
+      @post.tags.should be_nil if array_supported?
     end
 
     it "should leave not-null last name field alone" do
@@ -41,16 +41,16 @@ describe NilifyBlanks do
 
     it "should convert all array blanks to nils" do
       next unless array_supported?
-      @post = Post.new(:last_name => '', :custom_data => ['', 'foo', nil, 'bar'])
+      @post = Post.new(:last_name => '', :tags => ['', 'foo', nil, 'bar'])
       @post.save
-      @post.custom_data.length.should == 2
+      @post.tags.length.should == 2
     end
 
     it "should convert empty array to nil" do
       next unless array_supported?
-      @post = Post.new(:last_name => '', :custom_data => ['', nil, ''])
+      @post = Post.new(:last_name => '', :tags => ['', nil, ''])
       @post.save
-      @post.custom_data.should == nil
+      @post.tags.should == nil
     end
   end
 
@@ -61,11 +61,11 @@ describe NilifyBlanks do
         nilify_blanks :nullables_only => false
       end
 
-      @post = PostWithNullables.new(:first_name => '', :last_name => '', :title => '', :summary => '', :body => '', :slug => '', :views => 0, :blog_id => '', :custom_data => [''])
+      @post = PostWithNullables.new(:first_name => '', :last_name => '', :title => '', :summary => '', :body => '', :slug => '', :views => 0, :blog_id => '', :tags => [''])
     end
 
     it "should recognize all (even null) string, text, citext columns" do
-      PostWithNullables.nilify_blanks_columns.should == ['first_name', 'last_name', 'title', 'summary', 'body', 'slug', 'blog_id', 'custom_data']
+      PostWithNullables.nilify_blanks_columns.should == ['first_name', 'last_name', 'title', 'summary', 'body', 'slug', 'blog_id', 'tags']
     end
   end
 
@@ -101,6 +101,36 @@ describe NilifyBlanks do
       @post.last_name.should == ""
       @post.title.should == ""
       @post.slug.should == "" if citext_supported
+    end
+  end
+
+  context "Model with nilify_blanks :types => [:hstore]" do
+    def hstore_supported?
+      PostOnlyHstore.content_columns.detect {|c| c.type == :hstore}
+    end
+
+    before(:all) do
+      class PostOnlyHstore < ActiveRecord::Base
+        self.table_name = "posts"
+        nilify_blanks :types => [:hstore]
+      end
+
+      @post = PostOnlyHstore.new(:first_name => '', :last_name => '', :title => '', :summary => '', :body => '', :slug => '', :views => 0, :custom_data => {:test => ''})
+      @post.save
+    end
+
+    it "should convert all hstore blanks to nils" do
+      next unless hstore_supported?
+      @post = PostOnlyHstore.new(:last_name => '', :custom_data => {:test => '', :foo => 'bar', :yodawg => nil, :bar => 'foo'})
+      @post.save
+      @post.custom_data.length.should == 2
+    end
+
+    it "should convert empty hstore to nil" do
+      next unless hstore_supported?
+      @post = PostOnlyHstore.new(:last_name => '', :custom_data => {:test => '', :yodawg => nil})
+      @post.save
+      @post.custom_data.should == nil
     end
   end
 
@@ -142,19 +172,19 @@ describe NilifyBlanks do
         nilify_blanks :except => [:first_name, :title, :blog_id]
       end
 
-      @post = PostExceptFirstNameAndTitleAndBlogId.new(:first_name => '', :last_name => '', :title => '', :summary => '', :body => '', :slug => '', :views => 0, :custom_data => [''])
+      @post = PostExceptFirstNameAndTitleAndBlogId.new(:first_name => '', :last_name => '', :title => '', :summary => '', :body => '', :slug => '', :views => 0, :tags => [''])
       @post.save
     end
 
-    it "should recognize only summary, body, views, and custom_data" do
-      PostExceptFirstNameAndTitleAndBlogId.nilify_blanks_columns.should == ['summary', 'body', 'slug', 'custom_data']
+    it "should recognize only summary, body, views, and tags" do
+      PostExceptFirstNameAndTitleAndBlogId.nilify_blanks_columns.should == ['summary', 'body', 'slug', 'tags']
     end
 
-    it "should convert summary, body, slug, and custom_data blanks to nils" do
+    it "should convert summary, body, slug, and tags blanks to nils" do
       @post.summary.should be_nil
       @post.body.should be_nil
       @post.slug.should be_nil
-      @post.custom_data.should be_nil if array_supported?
+      @post.tags.should be_nil if array_supported?
     end
 
     it "should leave other fields alone" do

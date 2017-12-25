@@ -10,7 +10,15 @@ ActiveRecord::Schema.define(:version => 0) do
     t.integer :views
     t.integer :category_id
     t.string :blog_id
-    t.string :custom_data, array: true
+    adapter_type = connection.adapter_name.downcase.to_sym
+    case adapter_type
+    when :postgresql
+      t.string :tags, array: true
+      t.hstore :custom_data
+    else
+      t.string :tags
+      t.integer :custom_data
+    end
   end
 
 end

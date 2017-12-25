@@ -94,6 +94,13 @@ module NilifyBlanks
           }
           value = nil if value.empty?
           write_attribute(column, value) if value.blank?
+        elsif value.is_a?(Hash)
+          value.reject! { |hstore_key, hstore_value|
+            next unless hstore_value.respond_to?(:blank?)
+            hstore_value.blank?
+          }
+          value = nil if value.empty?
+          write_attribute(column, value) if value.blank?
         end
       end
     end
