@@ -10,6 +10,7 @@ ActiveRecord::Schema.define(:version => 0) do
     t.integer :views
     t.integer :category_id
     t.string :blog_id
+    t.string :custom_data, array: true
   end
 
 end

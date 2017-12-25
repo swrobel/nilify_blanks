@@ -92,11 +92,8 @@ module NilifyBlanks
             next unless array_value.respond_to?(:blank?)
             array_value.blank?
           }
-          if value.empty?
-            write_attribute(column, nil) if value.blank?
-          else
-            write_attribute(column, value) if value.blank?
-          end
+          value = nil if value.empty?
+          write_attribute(column, value) if value.blank?
         end
       end
     end
