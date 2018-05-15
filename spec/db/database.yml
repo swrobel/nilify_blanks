@@ -1,21 +1,15 @@
-sqlite:
-  adapter: sqlite
-  database: spec/db/test.sqlite
+common: &common
+  database: nilify_blanks_test
 
 sqlite3:
   adapter: sqlite3
   database: spec/db/test.sqlite3
 
 postgresql:
+  <<: *common
   adapter: postgresql
-  username: nilify_blanks
-  password: nilify_blanks
-  database: nilify_blanks_plugin_test
-  min_messages: ERROR
 
 mysql:
-  adapter: mysql
-  host: localhost
+  <<: *common
+  adapter: mysql2
   username: root
-  password:
-  database: nilify_blanks_plugin_test
