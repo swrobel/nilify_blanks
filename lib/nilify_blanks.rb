@@ -74,7 +74,8 @@ module NilifyBlanks
         self.nilify_blanks_columns = self.nilify_blanks_columns.map(&:to_s)
 
         options[:before] ||= :save
-        send("before_#{options[:before]}", :nilify_blanks)
+        options[:prepend] ||= false
+        send("before_#{options[:before]}", :nilify_blanks, prepend: options[:prepend])
         @nilify_blanks_methods_generated = true
       end
     end
