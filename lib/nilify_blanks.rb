@@ -1,3 +1,5 @@
+require 'nilify_blanks/array_hash_helpers'
+
 module NilifyBlanks
   def self.included(base)
     base.extend ClassMethods
@@ -87,13 +89,8 @@ module NilifyBlanks
         value = read_attribute(column)
         if value.is_a?(String)
           next unless value.respond_to?(:blank?)
-        elsif value.is_a?(Array) || value.is_a?(Hash)
-          value.reject! { |k, v|
-            # Avoid separate reject! blocks for arrays & hashes
-            v = k if value.is_a?(Array)
-            next unless v.respond_to?(:blank?)
-            !v.is_a?(FalseClass) && v.blank?
-          }
+        elsif array_or_hash?(value)
+          nilify_array_or_hash(value)
         else next
         end
         write_attribute(column, nil) if value.blank?
